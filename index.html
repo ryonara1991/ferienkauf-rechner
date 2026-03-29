@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ferienkauf-Rechner</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #ffffff; color: #1a1a1a; min-height: 100vh; display: flex; justify-content: center; padding: 40px 20px; }
+  .calculator { width: 100%; max-width: 520px; }
+  .header { margin-bottom: 32px; }
+  .header h1 { font-size: 24px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+  .header p { font-size: 14px; color: #6b7280; line-height: 1.5; }
+  .input-group { margin-bottom: 20px; }
+  .input-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; letter-spacing: 0.01em; }
+  .input-group .hint { font-size: 12px; color: #9ca3af; font-weight: 400; margin-left: 4px; }
+  .input-wrapper { position: relative; display: flex; align-items: center; }
+  .input-wrapper input, .input-wrapper select { width: 100%; padding: 12px 16px; font-size: 16px; font-family: 'Inter', sans-serif; border: 1.5px solid #e5e7eb; border-radius: 10px; background: #fafafa; color: #1a1a1a; transition: all 0.2s ease; -moz-appearance: textfield; }
+  .input-wrapper input::-webkit-outer-spin-button, .input-wrapper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .input-wrapper input:focus, .input-wrapper select:focus { outline: none; border-color: #3b82f6; background: #ffffff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+  .input-wrapper .unit { position: absolute; right: 16px; font-size: 14px; color: #9ca3af; font-weight: 500; pointer-events: none; }
+  .input-wrapper input.has-unit { padding-right: 60px; }
+  .divider { height: 1px; background: #f3f4f6; margin: 28px 0; }
+  .results { background: #f8fafc; border: 1.5px solid #e5e7eb; border-radius: 14px; padding: 24px; margin-top: 8px; }
+  .results h2 { font-size: 13px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px; }
+  .result-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+  .result-row + .result-row { border-top: 1px solid #f3f4f6; }
+  .result-row .label { font-size: 14px; color: #6b7280; }
+  .result-row .value { font-size: 14px; font-weight: 600; color: #1a1a1a; font-variant-numeric: tabular-nums; }
+  .result-highlight { background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 16px 20px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .result-highlight .label { font-size: 14px; font-weight: 600; color: #1e40af; }
+  .result-highlight .value { font-size: 20px; font-weight: 700; color: #1e40af; font-variant-numeric: tabular-nums; }
+  .info-box { margin-top: 20px; padding: 14px 16px; background: #fefce8; border: 1px solid #fde68a; border-radius: 10px; font-size: 12px; color: #92400e; line-height: 1.5; }
+  .info-box strong { font-weight: 600; }
+  @media (max-width: 480px) { body { padding: 24px 16px; } .header h1 { font-size: 20px; } .results { padding: 18px; } .result-highlight .value { font-size: 18px; } }
+</style>
+</head>
+<body>
+<div class="calculator">
+  <div class="header">
+    <h1>Ferienkauf-Rechner</h1>
+    <p>Berechne die monatlichen Kosten für zusätzliche Ferientage.</p>
+  </div>
+  <div class="input-group">
+    <label>Brutto-Monatslohn <span class="hint">(aktuelles Pensum)</span></label>
+    <div class="input-wrapper">
+      <input type="number" id="salary" value="7500" min="0" step="100" class="has-unit" oninput="calculate()">
+      <span class="unit">CHF</span>
+    </div>
+  </div>
+  <div class="input-group">
+    <label>Pensum</label>
+    <div class="input-wrapper">
+      <input type="number" id="pensum" value="100" min="10" max="100" step="10" class="has-unit" oninput="calculate()">
+      <span class="unit">%</span>
+    </div>
+  </div>
+  <div class="input-group">
+    <label>Zusätzliche Ferientage <span class="hint">(pro Jahr)</span></label>
+    <div class="input-wrapper">
+      <input type="number" id="days" value="5" min="0" max="50" step="1" class="has-unit" oninput="calculate()">
+      <span class="unit">Tage</span>
+    </div>
+  </div>
+  <div class="input-group">
+    <label>Gültig ab Monat <span class="hint">(Abzug startet ab diesem Monat)</span></label>
+    <div class="input-wrapper">
+      <select id="startMonth" onchange="calculate()">
+        <option value="1">Januar</option>
+        <option value="2">Februar</option>
+        <option value="3">März</option>
+        <option value="4">April</option>
+        <option value="5">Mai</option>
+        <option value="6">Juni</option>
+        <option value="7">Juli</option>
+        <option value="8">August</option>
+        <option value="9">September</option>
+        <option value="10">Oktober</option>
+        <option value="11">November</option>
+        <option value="12">Dezember</option>
+      </select>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="results">
+    <h2>Ergebnis</h2>
+    <div class="result-row">
+      <span class="label">Arbeitstage / Monat (bei deinem Pensum)</span>
+      <span class="value" id="workdays">21.75</span>
+    </div>
+    <div class="result-row">
+      <span class="label">Kosten pro Tag</span>
+      <span class="value" id="costPerDay">–</span>
+    </div>
+    <div class="result-row">
+      <span class="label">Gesamtkosten pro Jahr</span>
+      <span class="value" id="totalCost">–</span>
+    </div>
+    <div class="result-row">
+      <span class="label">Verbleibende Monate</span>
+      <span class="value" id="remainingMonths">–</span>
+    </div>
+    <div class="result-row">
+      <span class="label">Monatlicher Abzug</span>
+      <span class="value" id="monthlyDeduction">–</span>
+    </div>
+    <div class="result-highlight">
+      <span class="label">Neuer Brutto-Monatslohn</span>
+      <span class="value" id="newSalary">–</span>
+    </div>
+  </div>
+  <div class="info-box">
+    <strong>Hinweis:</strong> Die Berechnung basiert auf 21.75 Arbeitstagen pro Monat bei 100 %. Die Gesamtkosten werden auf die verbleibenden Monate im Jahr verteilt (ab dem gewählten Startmonat). Angaben ohne Gewähr – massgebend ist die Berechnung deines Arbeitgebers.
+  </div>
+</div>
+<script>
+  const WORKDAYS_FULL = 21.75;
+  function formatCHF(amount) {
+    return amount.toLocaleString('de-CH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' CHF';
+  }
+  function calculate() {
+    const salary = parseFloat(document.getElementById('salary').value) || 0;
+    const pensum = (parseFloat(document.getElementById('pensum').value) || 100) / 100;
+    const days = parseFloat(document.getElementById('days').value) || 0;
+    const startMonth = parseInt(document.getElementById('startMonth').value);
+    const remainingMonths = 13 - startMonth;
+    const effectiveWorkdays = WORKDAYS_FULL * pensum;
+    const costPerDay = pensum > 0 ? salary / effectiveWorkdays : 0;
+    const totalCost = costPerDay * days;
+    const monthlyDeduction = remainingMonths > 0 ? totalCost / remainingMonths : 0;
+    const newSalary = salary - monthlyDeduction;
+    document.getElementById('workdays').textContent = effectiveWorkdays.toFixed(2);
+    document.getElementById('costPerDay').textContent = formatCHF(costPerDay);
+    document.getElementById('totalCost').textContent = formatCHF(totalCost);
+    document.getElementById('remainingMonths').textContent = remainingMonths;
+    document.getElementById('monthlyDeduction').textContent = formatCHF(monthlyDeduction);
+    document.getElementById('newSalary').textContent = formatCHF(newSalary);
+  }
+  const currentMonth = new Date().getMonth() + 1;
+  document.getElementById('startMonth').value = currentMonth;
+  calculate();
+</script>
+</body>
+</html>
